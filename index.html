@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="An interactive demonstration of experience-amortized curvilinear mask process correction.">
+<title>EAMPC: An Experience-Amortized System for Curvilinear Mask Process Correction</title>
+<link rel="stylesheet" href="style.css">
+<script src="assets/case-geometry.js" defer></script>
+<script src="assets/gallery-surfaces.js" defer></script>
+<script src="gallery-surface.js" defer></script>
+<script src="sequence-autoplay.js" defer></script>
+<script src="demo.js" defer></script>
+<script src="assets/pipeline-geometry.js" defer></script>
+<script src="pipeline.js" defer></script>
+<script src="amortization.js" defer></script>
+<script src="training-scene.js" defer></script>
+<script src="assets/workflow-case/data.js" defer></script>
+<script src="workflow-evidence.js" defer></script>
+<script src="workflow-scene.js" defer></script>
+<script src="experience.js" defer></script>
+</head>
+<body>
+<header class="mast wrap">
+  <a class="brand" href="#top">EAMPC</a>
+  <nav aria-label="Sections"><a href="#workflow">Workflow</a><a href="#method">Method</a><a href="#results">Experiments</a></nav>
+</header>
+<main id="top">
+<section class="hero wrap" aria-labelledby="hero-title">
+  <div class="hero-copy">
+    <h1 id="hero-title">EAMPC: An Experience-Amortized System for Curvilinear Mask Process Correction</h1>
+    <p class="lede">Mask shops correct, verify, and repair layouts every day. EAMPC follows the same sequence and learns from the records it leaves behind, so subsequent layouts can start from accumulated correction experience.</p>
+    <a class="primary" href="#demo">Explore a correction <span aria-hidden="true">↘</span></a>
+  </div>
+  <div class="hero-art" aria-hidden="true">
+    <div class="stack">
+      <div class="plate plate-base"><img src="assets/l46-layout.webp" alt=""></div>
+      <div class="plate plate-mask"><img src="assets/l46-layout.webp" alt=""></div>
+      <div class="plate plate-detail"><img src="assets/l46-detail.webp" alt=""></div>
+    </div>
+    <span class="art-label">SOC-L46 · Selected hotspot</span>
+  </div>
+</section>
+<section class="section wrap" id="workflow">
+  <div class="section-intro"><p class="eyebrow">01 / WORKFLOW</p><h2>Every layout leaves a record.</h2><p>As the mask shop corrects, verifies, and repairs new layouts, its archive grows. The next layout still begins a new correction run. EAMPC uses those saved results as training examples.</p></div>
+  <div class="experience-card" id="record-demo">
+    <div class="experience-head"><h3>Mask shop archive</h3><button type="button" id="record-play" aria-pressed="true">Pause animation</button></div>
+    <div class="training-scene workflow-scene">
+      <div class="training-scene-head">
+        <div class="training-phase" aria-label="Mask shop workflow stages">
+          <button type="button" data-workflow-stage="0" aria-pressed="true">Correct</button>
+          <button type="button" data-workflow-stage="1" aria-pressed="false">Verify</button>
+          <button type="button" data-workflow-stage="2" aria-pressed="false">Repair</button>
+          <button type="button" data-workflow-stage="3" aria-pressed="false">Archive</button>
+        </div>
+        <button type="button" id="workflow-reset" class="training-reset">Reset view</button>
+      </div>
+      <canvas id="workflow-canvas" tabindex="0" aria-label="Illustrative 3D mask shop workflow. Layouts travel through correction, verification and repair. Correction pairs and verification reports are saved in the archive. Drag or use arrow keys to rotate."></canvas>
+      <div class="training-scene-foot">
+        <p id="workflow-status">SOC-L48 · Target and commercial MPC mask form a correction pair.</p>
+        <span>↔ Drag to rotate · Saved SOC-L48 example</span>
+      </div>
+    </div>
+    <div class="experience-footer"><span>Conventional MPC repeats the solve for each new layout.</span><a href="#training-demo">See how EAMPC trains from the archive ↓</a></div>
+  </div>
+  <details class="figure"><summary>View the workflow figure from the paper</summary><img src="assets/workflow.webp" loading="lazy" alt="Paper figure comparing the conventional mask-shop workflow with EAMPC."></details>
+</section>
+<section class="section wrap" id="method">
+  <div class="section-intro"><p class="eyebrow">02 / METHOD</p><h2>From curves to corrections.</h2></div>
+  <div class="experience-card training-card" id="training-demo">
+    <div class="experience-head"><div><h3>Three sources of supervision</h3><p>Each network learns from a different part of the workflow.</p></div><button type="button" id="training-replay">Replay training flow ▶</button></div>
+    <div class="training-scene" id="training-scene">
+      <div class="training-scene-head">
+        <div class="training-phase" aria-label="Training animation stages">
+          <button type="button" data-train-stage="0" aria-pressed="true">Data transfer</button>
+          <button type="button" data-train-stage="1" aria-pressed="false">Forward pass</button>
+          <button type="button" data-train-stage="2" aria-pressed="false">Weight update</button>
+        </div>
+        <button type="button" id="training-reset" class="training-reset">Reset view</button>
+      </div>
+      <div class="training-canvas-wrap">
+      <canvas id="training-canvas" tabindex="0" aria-label="Illustrative three-dimensional training networks for Global, HSL and Local. Drag or use the arrow keys to rotate."></canvas>
+        <div class="training-lane-labels" aria-label="Training input and supervision by network">
+          <div><strong>Global corrector</strong><span>Target + corrected mask</span><small>Matched Bézier control points</small></div>
+          <div><strong>Hotspot localizer</strong><span>Corrected mask + RDB report</span><small>Violations aligned to curve intervals</small></div>
+          <div><strong>Local corrector</strong><span>ILT repair before + after</span><small>Paired points in the same hotspot window</small></div>
+        </div>
+      </div>
+      <div class="training-scene-foot">
+        <p id="training-scene-status" aria-live="polite">Saved examples enter their corresponding networks.</p>
+        <span>↔ Drag to rotate · Training schematic</span>
+      </div>
+    </div>
+  </div>
+  <div class="method-grid">
+    <img class="method-figure" src="assets/architecture.webp" loading="lazy" alt="Architecture from the paper showing global correction, hotspot localization and local refinement.">
+    <ol class="method-notes">
+      <li><strong>Global</strong><p>A curve Transformer predicts displacements of Bézier control points from neighboring curves. Consistent updates at shared endpoints keep the boundary connected.</p></li>
+      <li><strong>HSL</strong><p>The localizer learns from RDB reports and predicts hotspot risk and a location offset along each curve.</p></li>
+      <li><strong>Local</strong><p>The local corrector learns from ILT repairs and is fine-tuned through a differentiable process model. A guard penalty discourages error increases around the edited region.</p></li>
+    </ol>
+  </div>
+</section>
+<section class="section wrap" id="results">
+  <div class="section-intro"><p class="eyebrow">03 / EXPERIMENTS</p><h2>Follow a hotspot into the contour.</h2><p>Watch the mask and simulated contour change together, from the input layout through global correction to local repair.</p></div>
+  <div id="demo" class="pipeline">
+    <div class="pipeline-toolbar">
+      <div class="case-picker" id="pipeline-cases" aria-label="Selected correction examples">
+        <button type="button" data-neighborhood="soc50a" aria-pressed="true">SOC-L50-A</button>
+        <button type="button" data-neighborhood="soc48a" aria-pressed="false">SOC-L48-A</button>
+      </div>
+      <div class="case-picker" id="pipeline-zoom" aria-label="Field of view">
+        <button type="button" data-zoom="2000" aria-pressed="false">2 µm overview</button>
+        <button type="button" data-zoom="440" aria-pressed="false">440 nm context</button>
+        <button type="button" data-zoom="90" aria-pressed="true">90 nm detail</button>
+        <button type="button" data-zoom="45" aria-pressed="false">45 nm close-up</button>
+      </div>
+    </div>
+    <div class="pipeline-views" id="pipeline-views">
+      <figure class="pipeline-overview" id="pipeline-overview" hidden><figcaption>Hotspot context <span>440 nm</span></figcaption><canvas id="repair-context" width="480" height="480" tabindex="0" aria-describedby="context-help" aria-label="Move the detail view on the hotspot layout"></canvas><div class="context-tools"><span id="context-help">Drag the box or use arrow keys</span><button id="context-reset" type="button">Recenter</button></div></figure>
+      <figure><figcaption>Mask geometry <span id="mask-state">Input layout</span></figcaption><canvas id="mask-view" width="480" height="480" aria-label="Animated mask geometry"></canvas></figure>
+      <figure><figcaption>Simulated contour <span id="contour-state">Before correction</span></figcaption><canvas id="print-view" width="480" height="480" aria-label="Animated simulated contour with EPE probe markers"></canvas>
+      <div id="epe-panel" hidden>
+        <div class="epe-title"><strong>Measured EPE</strong><span>Global → Local · lower is better</span></div>
+        <div id="epe-summary"></div>
+        <p id="probe-reading" aria-live="polite"></p>
+      </div></figure>
+    </div>
+    <div class="pipeline-controls">
+      <div class="pipeline-actions">
+        <button type="button" class="primary" id="pipeline-play">Play sequence ▶</button>
+        <div class="steps" id="pipeline-stages" aria-label="Choose a stage">
+          <button type="button" data-pipeline-stage="0" aria-pressed="true">1 · Global</button>
+          <button type="button" data-pipeline-stage="1" aria-pressed="false">2 · Hotspot</button>
+          <button type="button" data-pipeline-stage="2" aria-pressed="false">3 · Local</button>
+        </div>
+      </div>
+      <label class="pipeline-scrub" for="pipeline-time">Timeline <input type="range" id="pipeline-time" min="0" max="3000" value="0" step="1"></label>
+      <p id="pipeline-explain" aria-live="polite"></p>
+      <div class="pipeline-legend"><span><i class="legend-target"></i> Target contour</span><span><i class="legend-before"></i> Start of this correction</span><span id="candidate-legend"><i class="legend-window"></i> <span id="candidate-legend-label">Recorded hotspot window</span></span><span><i class="legend-delta"></i> Area changed</span><span id="detail-legend" hidden><i class="legend-crop"></i> Detail view</span></div>
+    </div>
+    <p class="pipeline-source">Selected diagnostic examples. Animation interpolates between saved geometries and simulated contours.</p>
+  </div>
+  <details class="experiment-gallery" open><summary>Contour comparisons across AES, FFT and SOC layouts</summary>
+  <div class="demo" id="case-gallery" data-display="surface">
+    <div class="case-picker" aria-label="Choose an experimental case">
+      <button data-case="aes" type="button" aria-pressed="false">AES-1</button><button data-case="fft" type="button" aria-pressed="false">FFT-2</button><button data-case="l46" type="button" aria-pressed="true">SOC-L46</button><button data-case="l50" type="button" aria-pressed="false">SOC-L50-B</button>
+      <button data-case="l48a" type="button" aria-pressed="false">SOC-L48-A</button><button data-case="l48b" type="button" aria-pressed="false">SOC-L48-B</button><button data-case="l50a" type="button" aria-pressed="false">SOC-L50-A</button><button data-case="l52" type="button" aria-pressed="false">SOC-L52</button>
+    </div>
+    <div class="gallery-view-tabs steps" aria-label="Contour display">
+      <button type="button" id="show-surface" aria-pressed="true">3D Contour View</button>
+      <button type="button" id="show-traces" aria-pressed="false">Contour lines</button>
+    </div>
+    <div class="demo-grid">
+      <div class="viewport" id="viewport">
+        <div class="rotate-hint"><span aria-hidden="true">↔</span> Drag to rotate</div>
+        <div id="surface-view" role="img" aria-label="Three-dimensional relief of the contours, with the same camera in both views">
+          <div class="surface-labels"><span id="surface-before">Global</span><span id="surface-after">Global + Local</span></div>
+          <canvas id="surface-canvas"></canvas>
+        </div>
+        <div class="orbit" id="orbit" data-stage="0" hidden>
+          <div class="orbit-pane context">
+            <span class="pane-label" id="layout-label">Layout context</span>
+            <img id="context-image" src="assets/l46-layout.webp" alt="SOC-L46 layout and selected hotspot">
+            <span id="hotspot-ring" aria-hidden="true"></span>
+          </div>
+          <div class="orbit-pane inset">
+            <span class="pane-label" id="contour-label">Target and global contour</span>
+            <svg id="contour" viewBox="0 0 180 180" role="img" aria-label="Target and predicted contours at the selected hotspot">
+              <defs><clipPath id="gallery-local-reveal"><rect width="180" height="180" id="gallery-reveal-rect"></rect></clipPath></defs>
+              <g id="target-paths"></g><g id="global-paths"></g><g id="local-paths" clip-path="url(#gallery-local-reveal)"></g>
+            </svg>
+          </div>
+        </div>
+        <div class="view-controls"><div class="surface-key heat-scale" aria-label="Illustrative relief height, from low to high"><span>Low</span><i aria-hidden="true"></i><span>High</span></div><button id="reset" type="button">Reset view</button></div>
+      </div>
+      <div class="demo-info">
+        <div class="steps" aria-label="Choose correction stage"><button type="button" data-stage="0" aria-pressed="true">Global</button><button type="button" data-stage="1" aria-pressed="false">HSL</button><button type="button" data-stage="2" aria-pressed="false">Local</button></div>
+        <p id="stage-copy" aria-live="polite">The global corrector predicts the first corrected contour. Its remaining gap to the target is visible in the inset.</p>
+        <div id="metric" aria-live="polite"><span>Global EPE at selected probe</span><strong>4.69 <small>nm</small></strong></div>
+        <button class="primary" id="play" type="button">Play sequence <span aria-hidden="true">▶</span></button>
+        <div class="sequence-progress" aria-hidden="true"><i></i><i></i><i></i></div>
+      </div>
+    </div>
+    <p class="demo-caption"><span class="trace-key"><i class="target"></i> Target</span><span class="trace-key"><i class="global"></i> Global</span><span class="trace-key"><i class="local"></i> Global + Local</span><span class="surface-key">Dashed line: target edge</span><span class="surface-key">Reconstructed from saved contours. Height and color are illustrative.</span></p>
+  </div>
+  </details>
+  <div class="benchmark">
+    <div><span>Mean EPE · full workflow</span><strong>0.310 <small>nm</small></strong></div>
+    <div><span>Maximum EPE · full workflow</span><strong>3.905 <small>nm</small></strong></div>
+    <div><span>Correction time · full workflow</span><strong>5.35 <small>s</small></strong><p>54.57 s for commercial curvilinear MPC</p></div>
+  </div>
+</section>
+<section class="section wrap" id="reuse">
+  <div class="section-intro"><p class="eyebrow">04 / REUSE</p><h2>Pay for adaptation once.</h2><p>With historical correction pairs and verification reports already available, EAMPC fine-tunes once and reuses the adapted models on subsequent layouts. Each additional layout adds less correction time, gradually recovering the upfront cost.</p></div>
+  <div class="amortization">
+    <div class="amort-head">
+      <div><h3>When does the time saved pay back adaptation?</h3><p>Estimated from the six layout groups in the paper</p></div>
+      <button class="primary" id="amort-play" type="button">Play workload ▶</button>
+    </div>
+    <div class="amort-legend"><span><i class="amort-line mb"></i> Commercial curvilinear MPC</span><span><i class="amort-line ours"></i> EAMPC including fine-tuning</span></div>
+    <canvas id="amort-plot" aria-label="Estimated cumulative time against layout workload. EAMPC starts with one-time adaptation and crosses commercial MPC at about 123 core equivalents."></canvas>
+    <div class="amort-controls">
+      <label for="amort-work">Layout workload <output id="amort-count" for="amort-work">0 core equivalents</output></label>
+      <input type="range" id="amort-work" min="0" max="320" step="1" value="0">
+      <div class="steps" aria-label="Workload examples"><button type="button" data-workload="0">Upfront</button><button type="button" data-workload="123">Break-even</button><button type="button" data-workload="256">After 256 cores</button></div>
+    </div>
+    <div class="amort-readouts">
+      <div><span>Commercial MPC</span><strong id="amort-mb">0.00 h</strong></div>
+      <div><span>EAMPC total</span><strong id="amort-eampc">1.68 h</strong><small id="amort-breakdown">1.68 h fine-tuning + 0.00 h correction</small></div>
+      <div><span>Time difference</span><strong id="amort-difference">1.68 h upfront</strong></div>
+    </div>
+    <p class="amort-foot">One core equivalent is an 8 × 8 µm² layout area. The estimated break-even is about 123 core equivalents, or an 89 × 89 µm² square. Larger-layout measurements are shown below.</p>
+  </div>
+  <h3 class="measured-heading">Measured runtime on larger SOC-L46 layouts</h3>
+  <dl class="experiment-hardware">
+    <div><dt>CPU</dt><dd>2 × Intel Xeon Platinum 8462Y+<small>32 cores each · 64 physical cores · 128 hardware threads</small></dd></div>
+    <div><dt>GPU</dt><dd>4 × NVIDIA H100 PCIe<small>80 GB per GPU</small></dd></div>
+    <div><dt>Runtime configuration</dt><dd>CentOS Linux 8<small>4 CPU threads per commercial MPC job · 1 GPU per EAMPC inference job</small></dd></div>
+  </dl>
+  <div class="scaling">
+    <div class="scale-picker" aria-label="Measured layout sizes"><button data-size="0" type="button" aria-pressed="true">256 × 256 µm²</button><button data-size="1" type="button" aria-pressed="false">512 × 512 µm²</button><button data-size="2" type="button" aria-pressed="false">1,024 × 1,024 µm²</button></div>
+    <div class="scale-bars" aria-live="polite">
+      <div class="bar-row"><span>Commercial MPC</span><div class="rail"><div class="bar commercial"></div></div><strong id="commercial-time">19.39 h</strong></div>
+      <div class="bar-row"><span>EAMPC incl. adaptation</span><div class="rail"><div class="bar eampc" id="eampc-bar"></div></div><strong id="eampc-time">3.20 h</strong></div>
+    </div>
+    <p class="speed"><strong id="speedup">6.05×</strong> overall speedup <span>Measured layout size · wafer equivalent</span></p>
+  </div>
+</section>
+</main>
+<footer class="wrap"><a class="brand" href="#top">EAMPC</a><span>Research demo · figures and measurements from the paper</span></footer>
+</body>
+</html>
