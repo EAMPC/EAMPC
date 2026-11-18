@@ -16,9 +16,9 @@ const stages = [
 ];
 
 const measurements = [
-  {commercial: 19.39, eampc: 3.20, speedup: '6.05'},
-  {commercial: 77.57, eampc: 7.77, speedup: '9.98'},
-  {commercial: 310.29, eampc: 26.03, speedup: '11.92'},
+  {commercial: 19.39, eampc: 3.13, speedup: '6.19'},
+  {commercial: 77.57, eampc: 6.44, speedup: '12.05'},
+  {commercial: 310.29, eampc: 23.84, speedup: '13.02'},
 ];
 
 const byId = (id) => document.getElementById(id);
